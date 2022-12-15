@@ -1,0 +1,44 @@
+version: "3"
+services:
+  sv1:
+    image:
+    build:
+    restart: always
+    ports:
+      - ""
+    network: 
+      -mynetwork: 
+        ipv4_address: 192.168.13.10
+
+  sv2:
+    image:
+    build:
+    restart: always
+    network: 
+      -mynetwork: 
+        ipv4_address: 192.168.13.11
+
+  ha1:
+    image:
+    build:
+    restart: always
+    network: 
+      -mynetwork: 
+        ipv4_address: 192.168.13.100
+  
+  ha2:
+    image:
+    build:
+    restart: always
+    network: 
+      -mynetwork: 
+        ipv4_address: 192.168.13.102
+
+network:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.13.0/24
+        gateway: 192.168.13.1
