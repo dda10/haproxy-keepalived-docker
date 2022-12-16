@@ -1,38 +1,57 @@
 version: "3"
 services:
   sv1:
-    image:
-    build:
+    build: 
+      dockerfile: Dockerfile
+      context: ./sv1
     restart: always
     ports:
-      - ""
+      - "10:80"
     network: 
       -mynetwork: 
         ipv4_address: 192.168.13.10
+    volume: 
 
-  sv2:
-    image:
+  sv2: 
     build:
+      context: ./sv2
+      dockerfile: Dockerfile
     restart: always
+    ports:
+      - "11:80"
     network: 
       -mynetwork: 
         ipv4_address: 192.168.13.11
 
-  ha1:
+  lb1:
     image:
     build:
+      dockerfile: Dockerfile
+      context: ./lb1
     restart: always
+    ports:
+      - "100:80"
     network: 
       -mynetwork: 
         ipv4_address: 192.168.13.100
-  
-  ha2:
+    volumes:
+      - ./lb1/keepalived.conf: /etc/keepalived/keepalived.conf 
+      - ./lb1/haproxy.cfg: /etc/haproxy/haproxy.cfg
+
+  lb2:
     image:
     build:
+      dockerfile: Dockerfile
+      context: ./lb2
     restart: always
+    ports:
+      - "102:80"
     network: 
       -mynetwork: 
         ipv4_address: 192.168.13.102
+    volumes:
+      - ./lb2/keepalived.conf: /etc/keepalived/keepalived.conf 
+      - ./lb2/haproxy.cfg: /etc/haproxy/haproxy.cfg
 
 network:
   mynetwork:
@@ -41,4 +60,33 @@ network:
       driver: default
       config:
         - subnet: 192.168.13.0/24
-        gateway: 192.168.13.1
+          gateway: 192.168.13.1
+
+volume:
+  sv1-log:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./sv1/log
+      o: bind
+  
+  sv2-log:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./sv2/log
+      o: bind
+    
+  # sv1-log:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: ./sv1/log
+  #     o: bind
+  
+  # sv1-log:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: ./sv1/log
+  #     o: bind
