@@ -1,92 +1,86 @@
 version: "3"
 services:
+
   sv1:
     build: 
       dockerfile: Dockerfile
       context: ./sv1
+    container_name: sv1
     restart: always
-    ports:
-      - "10:80"
-    network: 
-      -mynetwork: 
-        ipv4_address: 192.168.13.10
-    volume: 
+    
+    networks: 
+        mynet: 
+          ipv4_address: 192.168.1.100
+    volumes: 
+      - "sv1-log:/var/log/nginx"
 
   sv2: 
     build:
       context: ./sv2
       dockerfile: Dockerfile
+    container_name: sv2
     restart: always
-    ports:
-      - "11:80"
-    network: 
-      -mynetwork: 
-        ipv4_address: 192.168.13.11
+   
+    networks: 
+      mynet: 
+        ipv4_address: 192.168.1.120
+    volumes: 
+      - "sv2-log:/var/log/nginx"
 
   lb1:
-    image:
-    build:
+    build: 
       dockerfile: Dockerfile
       context: ./lb1
+    container_name: lb1
     restart: always
     ports:
       - "100:80"
-    network: 
-      -mynetwork: 
-        ipv4_address: 192.168.13.100
-    volumes:
-      - ./lb1/keepalived.conf: /etc/keepalived/keepalived.conf 
-      - ./lb1/haproxy.cfg: /etc/haproxy/haproxy.cfg
+    networks: 
+      mynet: 
+        ipv4_address: 192.168.1.200
 
+    stdin_open: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
   lb2:
-    image:
-    build:
+    build: 
       dockerfile: Dockerfile
       context: ./lb2
+    container_name: lb2
     restart: always
     ports:
       - "102:80"
-    network: 
-      -mynetwork: 
-        ipv4_address: 192.168.13.102
-    volumes:
-      - ./lb2/keepalived.conf: /etc/keepalived/keepalived.conf 
-      - ./lb2/haproxy.cfg: /etc/haproxy/haproxy.cfg
+    networks: 
+      mynet: 
+        ipv4_address: 192.168.1.202
 
-network:
-  mynetwork:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.13.0/24
-          gateway: 192.168.13.1
+    stdin_open: true
+    tty: true
+    cap_add:
+      - NET_ADMIN
+networks:
+  mynet:
+    external: true
+  # ipam:
+  #   driver: bridge
+  #     config:
+  #     - subnet: 192.168.1.0/24
+  #       gateway: 192.168.1.1
 
-volume:
-  sv1-log:
+volumes:
+   sv1-log:
     driver: local
     driver_opts:
       type: none
       device: ./sv1/log
       o: bind
   
-  sv2-log:
+   sv2-log:
     driver: local
     driver_opts:
       type: none
       device: ./sv2/log
       o: bind
-    
-  # sv1-log:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     device: ./sv1/log
-  #     o: bind
-  
-  # sv1-log:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     device: ./sv1/log
-  #     o: bind
+
+
